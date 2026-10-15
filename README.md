@@ -1,6 +1,6 @@
 # MIB tenders → Telegram
 
-Checks https://mib.com.mv/tenders every 30 minutes and posts new tenders to a Telegram channel.
+Checks https://mib.com.mv/tenders every 10 minutes and posts new tenders to a Telegram channel.
 
 ## Setup
 1. In Telegram, message @BotFather → `/newbot` → copy the bot token.

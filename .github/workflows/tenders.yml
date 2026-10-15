@@ -1,7 +1,7 @@
 name: MIB tenders
 on:
   schedule:
-    - cron: "*/30 * * * *"  # every 30 min (GitHub may delay runs)
+    - cron: "*/10 * * * *"  # every 10 min (GitHub may delay runs)
   workflow_dispatch:
 permissions:
   contents: write
