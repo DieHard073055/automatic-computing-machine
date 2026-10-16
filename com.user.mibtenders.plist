@@ -4,9 +4,9 @@
 <dict>
   <key>Label</key><string>com.user.mibtenders</string>
   <key>ProgramArguments</key>
-  <array><string>/Volumes/ACASIS_2_TB/mibtenders/run.sh</string></array>
+  <array><string>/Users/eshanshafeeq/mibtenders/run.sh</string></array>
   <key>StartInterval</key><integer>600</integer>
-  <key>StandardOutPath</key><string>/Volumes/ACASIS_2_TB/mibtenders/tenders.log</string>
-  <key>StandardErrorPath</key><string>/Volumes/ACASIS_2_TB/mibtenders/tenders.log</string>
+  <key>StandardOutPath</key><string>/Users/eshanshafeeq/Library/Logs/mibtenders.log</string>
+  <key>StandardErrorPath</key><string>/Users/eshanshafeeq/Library/Logs/mibtenders.log</string>
 </dict>
 </plist>
