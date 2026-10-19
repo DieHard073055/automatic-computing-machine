@@ -1,3 +1,4 @@
 __pycache__/
 .env
 tenders.log
+last_error.txt

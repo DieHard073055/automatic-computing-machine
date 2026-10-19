@@ -14,6 +14,7 @@ from pathlib import Path
 
 URL = "https://mib.com.mv/tenders"
 SEEN = Path(__file__).with_name("seen.json")
+LAST_ERROR = Path(__file__).with_name("last_error.txt")
 CARD = re.compile(r'<a href="(https://mib\.com\.mv/tenders/(\d+))"(.*?)</a>', re.S)
 
 
@@ -42,27 +43,43 @@ def fetch(url):
         return r.read().decode("utf-8", "replace")
 
 
-def send(t):
-    e = html.escape
-    lines = [f"<b>{e(t['title'])}</b>"]
-    lines += [e(x) for x in (t["status"] and f"Status: {t['status']}", t["notice"], t["closes"]) if x]
-    lines.append(t["link"])
+def post(text):
     data = urllib.parse.urlencode({
         "chat_id": os.environ["TELEGRAM_CHAT_ID"],
-        "text": "\n".join(lines),
+        "text": text,
         "parse_mode": "HTML",
     }).encode()
     url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage"
     with urllib.request.urlopen(url, data, timeout=30) as r:
         if not json.load(r).get("ok"):
-            raise RuntimeError(f"Telegram rejected tender {t['id']}")
+            raise RuntimeError("Telegram rejected the message")
+
+
+def send(t):
+    e = html.escape
+    lines = [f"<b>{e(t['title'])}</b>"]
+    lines += [e(x) for x in (t["status"] and f"Status: {t['status']}", t["notice"], t["closes"]) if x]
+    lines.append(t["link"])
+    post("\n".join(lines))
+
+
+def report(err):
+    """Post an error to the chat once; repeats of the same error stay quiet until it changes or clears."""
+    msg = f"{type(err).__name__}: {err}"
+    if LAST_ERROR.exists() and LAST_ERROR.read_text() == msg:
+        return
+    LAST_ERROR.write_text(msg)
+    try:
+        post(f"⚠️ MIB tenders bot error:\n<code>{html.escape(msg)}</code>")
+    except Exception:
+        pass  # e.g. bad token: nothing we can reach, the log still has it
 
 
 def main():
     tenders = parse(fetch(URL))
     if not tenders:
         # Layout changed or page broke: fail loudly instead of silently posting nothing.
-        sys.exit("No tenders parsed from page")
+        raise RuntimeError("No tenders parsed from page")
     seen = set(json.loads(SEEN.read_text())) if SEEN.exists() else set()
     new = [t for t in reversed(tenders) if t["id"] not in seen]  # oldest first
     for t in new:
@@ -76,4 +93,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if "--dry-run" in sys.argv:
+        main()
+    else:
+        try:
+            main()
+            LAST_ERROR.unlink(missing_ok=True)
+        except Exception as err:
+            report(err)
+            raise
